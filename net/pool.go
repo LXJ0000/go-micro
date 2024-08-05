@@ -13,7 +13,7 @@ type Pool struct {
 	connRequests []request  // 等待连接的请求队列
 	maxIdleCount int        // 最大空闲连接数
 	maxOpen      int        // 最大连接数
-	numOpen      int        // 当前打开的连接数
+	numOpen      int        // 当前打开的连接数 = 空闲连接数 + 非空闲连接数
 	initOpen     int        // 初始打开的连接数
 
 	maxIdleTime time.Duration // 连接最大空闲时间
@@ -49,17 +49,18 @@ func NewPool(initOpen, maxIdleCount, maxOpen int, maxIdleTime time.Duration, fac
 		maxIdleCount: maxIdleCount,
 		maxOpen:      maxOpen,
 		maxIdleTime:  maxIdleTime,
+		numOpen:      initOpen,
 		factory:      factory,
 	}, nil
 }
 
 func (p *Pool) Get(ctx context.Context) (net.Conn, error) {
 	select {
-	case <-ctx.Done():
+	case <-ctx.Done(): // 超时
 		return nil, ctx.Err()
 	default:
 	}
-	for {
+	for { // 循环从空闲连接中获取连接
 		select {
 		case c := <-p.freeConn: // 从空闲连接中获取
 			if c == nil {
@@ -70,7 +71,7 @@ func (p *Pool) Get(ctx context.Context) (net.Conn, error) {
 				continue
 			}
 			return c.Conn, nil
-		default: // 空闲连接已满，创建新的连接
+		default: // 空闲连接已用完，创建新的连接或者等待连接释放
 			p.mu.Lock()
 			if p.numOpen >= p.maxOpen { // 连接数已达到最大值 等待连接释放
 				req := request{make(chan net.Conn, 1)}
@@ -103,6 +104,26 @@ func (p *Pool) Get(ctx context.Context) (net.Conn, error) {
 }
 
 func (p *Pool) Put(ctx context.Context, c net.Conn) error {
-
+	p.mu.Lock()
+	if len(p.connRequests) != 0 { // 等待队列不为空 即有阻塞的请求
+		req := p.connRequests[0]
+		p.connRequests = p.connRequests[1:]
+		p.mu.Unlock() // 阻塞之前解锁
+		req.ch <- c
+		return nil
+	}
+	p.mu.Unlock()
+	// 等待队列为空
+	newConn := &conn{
+		Conn: c, lastActiveAt: time.Now(),
+	}
+	select {
+	case p.freeConn <- newConn: // 空闲连接未满，将连接放入空闲连接池
+	default: // 空闲连接已满
+		_ = c.Close()
+		p.mu.Lock()
+		p.numOpen--
+		p.mu.Unlock()
+	}
 	return nil
 }

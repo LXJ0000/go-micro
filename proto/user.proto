@@ -1,0 +1,22 @@
+syntax="proto3";
+package user;
+option go_package="/gen";
+
+service UserService {
+  rpc GetByID (GetByIDReq) returns (GetByIDResp);
+}
+
+message GetByIDReq {
+  int64 id = 1;
+}
+
+message GetByIDResp {
+    User User = 1;
+}
+
+message User {
+  int64 id = 1;
+  string name = 2;
+}
+
+// protoc --go_out=. --go-grpc_out=. user.proto

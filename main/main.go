@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/LXJ0000/go-micro/net"
 	"log/slog"
 	"time"
+
+	"github.com/LXJ0000/go-micro/net"
 )
 
 func main() {

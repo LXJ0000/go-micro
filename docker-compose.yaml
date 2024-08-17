@@ -1,0 +1,68 @@
+version: '3.0'
+services:
+  # mysql:
+  #   image: "mysql"
+  #   restart: "always"
+  #   command: "--default-authentication-plugin=mysql_native_password"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: "root"
+  #   volumes:
+  #     - "./script/mysql/:/docker-entrypoint-initdb.d/"
+  #   ports:
+  #     - "3306:3306"
+#  redis:
+#    image: "redis"
+#    command: ["redis-server", "--requirepass", "root"]
+#    ports:
+#      - "6379:6379"
+  # kafka:
+  #   image: 'bitnami/kafka'
+  #   ports:
+  #     - '9092:9092'
+  #     - '9094:9094'
+  #   environment:
+  #     - KAFKA_CFG_NODE_ID=0
+  #     - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true # 允许自动创建 topic，线上不要开启
+  #     - KAFKA_CFG_PROCESS_ROLES=controller,broker
+  #     - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://:9093,EXTERNAL://0.0.0.0:9094
+  #     - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:9094
+  #     - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+  #     - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+  #     - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+  # kafka-ui:
+  #   container_name: kafka-ui
+  #   image: 'provectuslabs/kafka-ui'
+  #   ports:
+  #     - '8888:8080'
+  #   depends_on:
+  #     - kafka
+  #   environment:
+  #     DYNAMIC_CONFIG_ENABLED: "TRUE"
+  # prometheus:
+  #   image: 'prom/prometheus:v2.47.2'
+  #   volumes:
+  #     - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+  #   ports:
+  #     - '9090:9090'
+#  zipkin:
+#    image: 'openzipkin/zipkin-slim'
+#    ports:
+#      - '9411:9411'
+#  grafana:
+#    image: 'grafana/grafana-enterprise'
+#    ports:
+#      - '3000:3000'
+  etcd:
+    image: "bitnami/etcd:latest"
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+    ports:
+      - "2379:2379"
+#  mongo:
+#    image: mongo
+#    restart: always
+#    ports:
+#      - "27017:27017"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: root

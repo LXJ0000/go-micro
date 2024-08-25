@@ -3,8 +3,11 @@ package go_micro
 import (
 	"context"
 	"fmt"
+	roundrobin "github.com/LXJ0000/go-micro/balance/round_robin"
 	"github.com/LXJ0000/go-micro/registry"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 	"time"
 )
 
@@ -44,5 +47,8 @@ func (c *Client) Dial(ctx context.Context, service string) (*grpc.ClientConn, er
 	if c.insecure {
 		opts = append(opts, grpc.WithInsecure())
 	}
+	balancer.Register(base.NewBalancerBuilder("go_micro_round_robin", &roundrobin.Builder{}, base.Config{HealthCheck: true}))
+	balance := grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "go_micro_round_robin"}`)
+	opts = append(opts, balance)
 	return grpc.DialContext(ctx, fmt.Sprintf("grpc:///%s", service), opts...)
 }

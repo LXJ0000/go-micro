@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/LXJ0000/go-lib v0.0.0-20240826102932-71aa5131eb27 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

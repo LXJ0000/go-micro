@@ -2,9 +2,11 @@ package go_micro
 
 import (
 	"context"
-	"github.com/LXJ0000/go-micro/registry"
-	"google.golang.org/grpc/resolver"
 	"time"
+
+	"github.com/LXJ0000/go-micro/registry"
+	"google.golang.org/grpc/attributes"
+	"google.golang.org/grpc/resolver"
 )
 
 type GRPCResolverBuilder struct {
@@ -54,7 +56,11 @@ func (g *GRPCResolver) resolve(options ...resolver.ResolveNowOptions) {
 	}
 	addresses := make([]resolver.Address, 0, len(instances))
 	for _, i := range instances {
-		addresses = append(addresses, resolver.Address{Addr: i.Addr})
+		addresses = append(addresses,
+			resolver.Address{
+				Addr:       i.Addr,
+				Attributes: attributes.New("weight", i.Weight),
+			})
 	}
 	if err := g.cc.UpdateState(resolver.State{Addresses: addresses}); err != nil {
 		g.cc.ReportError(err)

@@ -14,6 +14,7 @@ type Server struct {
 	name            string
 	registry        registry.Registry
 	registerTimeout time.Duration
+	weight int32
 	*grpc.Server
 }
 
@@ -63,5 +64,11 @@ func (s *Server) Close() error {
 func ServerWithRegister(r registry.Registry) ServerOption {
 	return func(server *Server) {
 		server.registry = r
+	}
+}
+
+func ServerWithWeight(weight int) ServerOption {
+	return func(server *Server) {
+		server.weight = int32(weight)
 	}
 }

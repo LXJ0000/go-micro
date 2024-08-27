@@ -1,12 +1,12 @@
 package roundrobin
 
 import (
-	"google.golang.org/grpc/balancer"
-	"google.golang.org/grpc/balancer/base"
 	"math"
-	"strconv"
 	"sync"
 	"sync/atomic"
+
+	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 )
 
 type WeightBalancer struct {
@@ -66,17 +66,15 @@ type WeightBuilder struct {
 func (b WeightBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	connList := make([]*weightConn, len(info.ReadySCs))
 	for sunConn, subInfo := range info.ReadySCs {
-		weightStr := subInfo.Address.Attributes.Value("weight").(string)
-		weight, err := strconv.Atoi(weightStr)
-		if err != nil {
-			panic(err)
+		weight, ok := subInfo.Address.Attributes.Value("weight").(int32)
+		if !ok {
+			panic("weight is invalid")
 		}
-
 		connList = append(connList, &weightConn{
 			c:               sunConn,
-			weight:          int32(weight),
-			efficientWeight: int32(weight),
-			currentWeight:   int32(weight),
+			weight:          weight,
+			efficientWeight: weight,
+			currentWeight:   weight,
 		})
 	}
 	return &WeightBalancer{
